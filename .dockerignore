@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.git/
+.env
+*.md
+mock/
+tests/
+grafana/
+prometheus/
+docker-compose.yml
+Makefile
+.dockerignore
+.env.example
