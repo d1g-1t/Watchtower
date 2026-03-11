@@ -1,0 +1,57 @@
+services:
+  - name: api-gateway
+    url: http://mock-api-gateway:8000/health
+    timeout: 3
+    interval: 10
+    critical: true
+    depends_on: []
+
+  - name: auth-service
+    url: http://mock-auth-service:8000/health
+    timeout: 3
+    interval: 10
+    critical: true
+    depends_on:
+      - postgresql
+      - redis
+
+  - name: payment-service
+    url: http://mock-payment-service:8000/health
+    timeout: 5
+    interval: 10
+    critical: true
+    depends_on:
+      - postgresql
+      - auth-service
+
+  - name: order-service
+    url: http://mock-order-service:8000/health
+    timeout: 5
+    interval: 10
+    critical: false
+    depends_on:
+      - postgresql
+      - payment-service
+      - notify-service
+
+  - name: notify-service
+    url: http://mock-notify-service:8000/health
+    timeout: 3
+    interval: 15
+    critical: false
+    depends_on:
+      - redis
+
+  - name: postgresql
+    url: http://mock-postgresql:8000/health
+    timeout: 2
+    interval: 10
+    critical: true
+    depends_on: []
+
+  - name: redis
+    url: http://mock-redis:8000/health
+    timeout: 2
+    interval: 10
+    critical: true
+    depends_on: []
