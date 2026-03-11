@@ -1,0 +1,106 @@
+services:
+  watchtower:
+    build: .
+    ports:
+      - "29710:8000"
+    environment:
+      - WT_CONFIG_PATH=app/config/services.yaml
+      - WT_LOG_LEVEL=INFO
+    depends_on:
+      - mock-api-gateway
+      - mock-auth-service
+      - mock-payment-service
+      - mock-order-service
+      - mock-notify-service
+      - mock-postgresql
+      - mock-redis
+    networks:
+      - watchtower
+
+  mock-api-gateway:
+    build: ./mock
+    environment:
+      - SERVICE_NAME=api-gateway
+      - HEALTH_MODE=healthy
+    networks:
+      - watchtower
+
+  mock-auth-service:
+    build: ./mock
+    environment:
+      - SERVICE_NAME=auth-service
+      - HEALTH_MODE=healthy
+    networks:
+      - watchtower
+
+  mock-payment-service:
+    build: ./mock
+    environment:
+      - SERVICE_NAME=payment-service
+      - HEALTH_MODE=flaky
+      - FAIL_RATE=0.3
+    networks:
+      - watchtower
+
+  mock-order-service:
+    build: ./mock
+    environment:
+      - SERVICE_NAME=order-service
+      - HEALTH_MODE=healthy
+    networks:
+      - watchtower
+
+  mock-notify-service:
+    build: ./mock
+    environment:
+      - SERVICE_NAME=notify-service
+      - HEALTH_MODE=healthy
+    networks:
+      - watchtower
+
+  mock-postgresql:
+    build: ./mock
+    environment:
+      - SERVICE_NAME=postgresql
+      - HEALTH_MODE=healthy
+    networks:
+      - watchtower
+
+  mock-redis:
+    build: ./mock
+    environment:
+      - SERVICE_NAME=redis
+      - HEALTH_MODE=healthy
+    networks:
+      - watchtower
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "29711:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - watchtower
+    networks:
+      - watchtower
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "29712:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=watchtower
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    depends_on:
+      - prometheus
+    networks:
+      - watchtower
+
+networks:
+  watchtower:
+    driver: bridge
